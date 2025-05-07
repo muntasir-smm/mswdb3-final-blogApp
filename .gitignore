@@ -1,2 +1,14 @@
-client/node_modules/
-server/node_modules/
+# Dependencies
+node_modules
+.next
+
+# Environment
+.env
+.env.local
+
+# Logs
+*.log
+
+# IDE
+.vscode
+.idea

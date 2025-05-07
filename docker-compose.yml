@@ -1,58 +1,42 @@
-# docker-compose.yml
-
-version: "3.8"
+version: '3.8'
 
 services:
-  mongo:
-    image: mongo:6.0
-    container_name: blog_mongo
-    restart: always
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
-    volumes:
-      - mongo_data:/data/db
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.dev
     ports:
-      - "27017:27017"
-    networks:
-      - blog_network
+      - "3000:3000"
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - server
+      - mongo
 
   server:
     build:
       context: ./server
-      dockerfile: Dockerfile
-    container_name: blog_server
-    restart: always
-    environment:
-      - NODE_ENV=production
-      - MONGODB_URI=mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASSWORD}@mongo:27017/blog_db?authSource=admin
-      - JWT_SECRET=${JWT_SECRET}
-      - CLIENT_URL=${CLIENT_URL}
+      dockerfile: Dockerfile.dev
     ports:
       - "5000:5000"
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - MONGO_URI=mongodb://mongo:27017/blogdb
     depends_on:
       - mongo
-    networks:
-      - blog_network
 
-  client:
-    build:
-      context: ./client
-      dockerfile: Dockerfile
-    container_name: blog_client
-    restart: always
-    environment:
-      - NEXT_PUBLIC_API_URL=${API_URL}
+  mongo:
+    image: mongo:5.0
     ports:
-      - "3000:3000"
-    depends_on:
-      - server
-    networks:
-      - blog_network
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
 
 volumes:
-  mongo_data:
-
-networks:
-  blog_network:
-    driver: bridge
+  mongo-data:
